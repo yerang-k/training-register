@@ -89,7 +89,7 @@
     .submit:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(26,79,180,.34);}
     .submit:active{transform:translateY(0);filter:brightness(.96);}
     .submit:disabled{opacity:.6;cursor:not-allowed;box-shadow:none;transform:none;}
-    footer{display:flex;align-items:center;justify-content:space-between;
+    footer{display:flex;align-items:center;justify-content:center;
       padding:12px 24px 20px;font-size:13px;color:var(--muted);}
     footer a{color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:5px;
       padding:6px 10px;border-radius:8px;transition:.12s;}
@@ -244,7 +244,6 @@
   </div>
 
   <footer>
-    <span>© <?= schoolName ?></span>
     <a href="<?= webAppUrl ?>?mode=admin" target="_top">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#6b7280" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
       담당자 메뉴
