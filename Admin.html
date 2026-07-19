@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <base target="_top">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--blue:#1a4fb4;--blue-dark:#123a86;--ink:#1f2a44;--muted:#6b7280;
+      --line:#dce3ef;--bg:#f4f6fb;--red:#e23b3b;--green:#16a34a;}
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--bg);color:var(--ink);
+      font-family:'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;}
+    .wrap{max-width:720px;margin:0 auto;min-height:100vh;background:#fff;
+      display:flex;flex-direction:column;}
+    header{background:var(--blue);color:#fff;padding:18px 20px;
+      font-size:18px;font-weight:800;display:flex;align-items:center;gap:9px;}
+    .tabs{display:flex;border-bottom:1px solid var(--line);}
+    .tab{flex:1;text-align:center;padding:15px;font-size:15px;font-weight:700;
+      color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;}
+    .tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+    .content{flex:1;padding:22px 20px;}
+    .field{margin-bottom:16px;}
+    label{display:block;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:7px;}
+    input[type=text],input[type=password],select,textarea{width:100%;
+      border:1.5px solid var(--line);background:#f6f8fc;border-radius:10px;
+      padding:13px 14px;font-size:15px;color:var(--ink);font-family:inherit;outline:none;}
+    input:focus,textarea:focus,select:focus{border-color:var(--blue);background:#fff;}
+    .hint{font-size:12px;color:var(--muted);margin-top:5px;}
+    .evtrow{display:flex;gap:6px;margin-bottom:8px;}
+    .evtrow .ev-name{flex:2;}
+    .evtrow .ev-dept{flex:1.3;}
+    .evtrow .ev-admin{flex:1;}
+    .btn{width:100%;border:none;background:var(--blue);color:#fff;font-size:16px;
+      font-weight:800;padding:15px;border-radius:12px;cursor:pointer;margin-top:4px;}
+    .btn:active{background:var(--blue-dark);}
+    .btn.ghost{background:#eef1f7;color:#334;}
+    .linkbox{margin-top:16px;padding:14px;border:1.5px dashed var(--blue);
+      border-radius:12px;background:#f6f9ff;display:none;}
+    .linkbox .url{font-size:13px;color:var(--blue-dark);word-break:break-all;
+      background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;margin:8px 0;}
+    .rowbtn{display:flex;gap:8px;}
+    .rowbtn .btn{margin-top:0;}
+    table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px;}
+    th,td{border:1px solid var(--line);padding:8px 9px;text-align:left;vertical-align:middle;}
+    th{background:#f0f4fb;color:#334;font-weight:700;white-space:nowrap;}
+    td img{height:34px;}
+    .count{font-size:14px;font-weight:700;color:var(--blue);margin:12px 0 4px;}
+    .err{color:var(--red);font-size:14px;margin-top:8px;min-height:18px;}
+    .tablescroll{overflow-x:auto;}
+    .muted{color:var(--muted);font-size:14px;}
+    a.small{color:var(--blue);font-size:13px;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="gate" class="content" style="margin-top:36px;text-align:center;">
+    <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="#1a4fb4" stroke-width="2" style="margin-bottom:4px;"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+    <h2 style="color:#14346e;margin:2px 0 4px;font-size:20px;">담당자 인증</h2>
+    <p class="muted" style="margin:0 0 16px;">담당자 비밀번호를 입력하세요.</p>
+    <input type="password" id="g_pw" placeholder="비밀번호" style="text-align:center;">
+    <button class="btn" id="g_btn" style="margin-top:10px;">입장</button>
+    <div class="err" id="g_err"></div>
+  </div>
+
+  <div id="adminApp" style="display:none;">
+  <header>
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+    연수 등록부 · 담당자 메뉴
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="make">행사 생성 / 링크 발급</div>
+    <div class="tab" data-tab="list">참석자 명단 조회</div>
+  </div>
+
+  <!-- ===== 링크 발급 ===== -->
+  <div class="content" id="tab-make">
+    <div class="field">
+      <label>연수 목록 * <span class="muted">(연수명 + 연수부서 + 담당자)</span></label>
+      <div id="evtRows">
+        <div class="evtrow"><input type="text" class="ev-name" placeholder="연수명 (예: 기초학력연수)"><input type="text" class="ev-dept" placeholder="연수부서"><input type="text" class="ev-admin" placeholder="담당자"></div>
+        <div class="evtrow"><input type="text" class="ev-name" placeholder="연수명 (예: 개인정보보호연수)"><input type="text" class="ev-dept" placeholder="연수부서"><input type="text" class="ev-admin" placeholder="담당자"></div>
+        <div class="evtrow"><input type="text" class="ev-name" placeholder="연수명 (예: 생활기록부연수)"><input type="text" class="ev-dept" placeholder="연수부서"><input type="text" class="ev-admin" placeholder="담당자"></div>
+      </div>
+      <button type="button" class="btn ghost" id="addRow" style="margin-top:4px;">+ 연수 추가</button>
+      <div class="hint">여러 개를 넣으면 참석자가 <b>한 번의 QR</b>로 여러 연수에 서명하고, 각 연수는 <b>별도 시트 탭</b>에 저장됩니다. 연수부서·담당자는 <b>연수마다 다르게</b> 넣을 수 있어요. 1개만 넣으면 단일 연수 등록입니다.</div>
+    </div>
+    <div class="field">
+      <label>학교(기관)명 <span class="muted">(등록 화면에 표시)</span></label>
+      <input type="text" id="m_school" value="<?= schoolName ?>">
+    </div>
+
+    <div class="field" style="border-top:1px dashed var(--line);padding-top:14px;">
+      <label>일시 <span class="muted">(등록부 상단에 자동 기입)</span></label>
+      <input type="text" id="m_date" placeholder="예) 2026. 3. 4.(수) 15:00">
+    </div>
+    <div class="field">
+      <label>장소 <span class="muted">(등록부 상단)</span></label>
+      <input type="text" id="m_method" placeholder="예) 본교 시청각실">
+    </div>
+    <div class="field">
+      <label>대상 <span class="muted">(비우면 '학교명 교직원')</span></label>
+      <input type="text" id="m_target" placeholder="예) <?= schoolName ?> 교직원">
+    </div>
+    <div class="field">
+      <label>직위 항목 <span class="muted">(콤마로 구분)</span></label>
+      <input type="text" id="m_pos" value="<?= defaultPositions ?>">
+    </div>
+    <button class="btn" id="makeBtn">등록 링크 만들기</button>
+    <div class="err" id="m_err"></div>
+
+    <div class="linkbox" id="linkbox">
+      <div style="font-weight:700;color:var(--blue-dark);">✅ 등록 링크가 생성되었습니다</div>
+      <div class="url" id="linkUrl"></div>
+      <div class="rowbtn">
+        <button class="btn" id="copyBtn">링크 복사</button>
+        <button class="btn ghost" id="openBtn">새 탭에서 열기</button>
+      </div>
+      <div class="hint">이 링크를 참석자에게 배포하세요. QR코드로 만들려면 링크를 QR 생성 사이트에 붙여넣으면 됩니다.</div>
+    </div>
+  </div>
+
+  <!-- ===== 명단 조회 ===== -->
+  <div class="content" id="tab-list" style="display:none;">
+    <div class="field">
+      <label>연수 선택 <span class="muted">(시트 탭)</span></label>
+      <select id="l_title"><option value="">— 연수를 선택하세요 —</option></select>
+    </div>
+    <div class="rowbtn">
+      <button class="btn" id="loadBtn">명단 불러오기</button>
+      <button class="btn ghost" id="printBtn">2단 인쇄본 만들기</button>
+    </div>
+    <div class="hint">'2단 인쇄본 만들기'를 누르면 순·직위·성명·서명을 좌·우 2단으로 배치한 <b>「연수명 (인쇄)」</b> 시트가 생성됩니다.</div>
+    <div class="err" id="l_err"></div>
+    <div id="result"></div>
+  </div>
+  </div><!-- adminApp -->
+</div>
+
+<script>
+  var WEBAPP_URL = <?!= JSON.stringify(webAppUrl) ?>;
+  var ADMIN_PW = '';
+
+  /* 담당자 인증(잠금 해제) */
+  document.getElementById('g_btn').onclick = function(){
+    var pw = document.getElementById('g_pw').value;
+    var err = document.getElementById('g_err'); err.textContent='';
+    google.script.run
+      .withSuccessHandler(function(ok){
+        if(ok){
+          ADMIN_PW = pw;
+          document.getElementById('gate').style.display='none';
+          document.getElementById('adminApp').style.display='block';
+          loadSheetList();
+        } else { err.textContent='비밀번호가 올바르지 않습니다.'; }
+      })
+      .withFailureHandler(function(e){ err.textContent = e.message || '오류가 발생했습니다.'; })
+      .verifyAdmin(pw);
+  };
+  document.getElementById('g_pw').addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); document.getElementById('g_btn').click(); }
+  });
+
+  /* 연수(시트 탭) 목록 드롭다운 채우기 */
+  function loadSheetList(){
+    if(!ADMIN_PW) return;
+    google.script.run
+      .withSuccessHandler(function(list){
+        var sel = document.getElementById('l_title');
+        var cur = sel.value;
+        var html = '<option value="">— 연수를 선택하세요 —</option>';
+        (list||[]).forEach(function(s){
+          if(/\(인쇄\)\s*$/.test(s.name)) return;   // 인쇄본 시트 제외
+          html += '<option value="'+esc(s.name)+'">'+esc(s.name)+' ('+s.rows+'명)</option>';
+        });
+        sel.innerHTML = html;
+        if(cur) sel.value = cur;
+      })
+      .withFailureHandler(function(){})
+      .listEventSheets({password:ADMIN_PW});
+  }
+
+  /* 탭 전환 */
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.onclick = function(){
+      tabs.forEach(function(x){x.classList.remove('active');});
+      t.classList.add('active');
+      document.getElementById('tab-make').style.display = (t.dataset.tab==='make')?'block':'none';
+      document.getElementById('tab-list').style.display = (t.dataset.tab==='list')?'block':'none';
+      if(t.dataset.tab==='list') loadSheetList();
+    };
+  });
+
+  /* 링크 생성 */
+  var generatedUrl = '';
+  document.getElementById('makeBtn').onclick = function(){
+    var errEl = document.getElementById('m_err'); errEl.textContent='';
+    var events = [], admins = [], depts = [];
+    document.querySelectorAll('#evtRows .evtrow').forEach(function(row){
+      var nm = row.querySelector('.ev-name').value.trim();
+      if(nm){
+        events.push(nm);
+        admins.push(row.querySelector('.ev-admin').value.trim());
+        depts.push(row.querySelector('.ev-dept').value.trim());
+      }
+    });
+    if(!events.length){ errEl.textContent='연수명을 하나 이상 입력하세요.'; return; }
+    var params = {
+      password: ADMIN_PW,
+      events: events,
+      admins: admins,
+      school: document.getElementById('m_school').value.trim(),
+      date: document.getElementById('m_date').value.trim(),
+      method: document.getElementById('m_method').value.trim(),
+      target: document.getElementById('m_target').value.trim(),
+      depts: depts,
+      positions: document.getElementById('m_pos').value.trim()
+    };
+    google.script.run
+      .withSuccessHandler(function(url){
+        generatedUrl = url;
+        document.getElementById('linkUrl').textContent = url;
+        document.getElementById('linkbox').style.display = 'block';
+      })
+      .withFailureHandler(function(e){ errEl.textContent = e.message || '오류가 발생했습니다.'; })
+      .buildRegisterLink(params);
+  };
+  document.getElementById('addRow').onclick = function(){
+    var d = document.createElement('div');
+    d.className = 'evtrow';
+    d.innerHTML = '<input type="text" class="ev-name" placeholder="연수명">'
+                + '<input type="text" class="ev-dept" placeholder="연수부서">'
+                + '<input type="text" class="ev-admin" placeholder="담당자">';
+    document.getElementById('evtRows').appendChild(d);
+  };
+  document.getElementById('copyBtn').onclick = function(){
+    navigator.clipboard.writeText(generatedUrl).then(function(){
+      var b=document.getElementById('copyBtn'); var o=b.textContent;
+      b.textContent='복사됨!'; setTimeout(function(){b.textContent=o;},1200);
+    });
+  };
+  document.getElementById('openBtn').onclick = function(){ window.open(generatedUrl,'_blank'); };
+
+  /* 명단 조회 */
+  document.getElementById('loadBtn').onclick = function(){
+    var errEl = document.getElementById('l_err'); errEl.textContent='';
+    var res = document.getElementById('result'); res.innerHTML='<p class="muted">불러오는 중...</p>';
+    var params = {
+      password: ADMIN_PW,
+      eventTitle: document.getElementById('l_title').value.trim()
+    };
+    google.script.run
+      .withSuccessHandler(renderTable)
+      .withFailureHandler(function(e){ res.innerHTML=''; errEl.textContent = e.message || '오류가 발생했습니다.'; })
+      .getAttendees(params);
+  };
+
+  document.getElementById('printBtn').onclick = function(){
+    var errEl = document.getElementById('l_err'); errEl.textContent='';
+    var res = document.getElementById('result'); res.innerHTML='<p class="muted">2단 인쇄본 생성 중...</p>';
+    var params = {
+      password: ADMIN_PW,
+      eventTitle: document.getElementById('l_title').value.trim()
+    };
+    google.script.run
+      .withSuccessHandler(function(r){
+        res.innerHTML = '<p style="color:#16a34a;font-weight:700;">✅ &lsquo;'+esc(r.sheetName)
+          +'&rsquo; 시트가 생성되었습니다 (총 '+r.count+'명).<br>스프레드시트에서 해당 탭을 열어 인쇄하세요.</p>';
+      })
+      .withFailureHandler(function(e){ res.innerHTML=''; errEl.textContent = e.message || '오류가 발생했습니다.'; })
+      .makePrintSheet(params);
+  };
+
+  function renderTable(data){
+    var res = document.getElementById('result');
+    if(!data.rows || !data.rows.length){ res.innerHTML='<p class="muted">등록된 참석자가 없습니다.</p>'; return; }
+    var html = '<div class="count">총 '+data.count+'명 등록</div>';
+    html += '<div class="tablescroll"><table><thead><tr>'
+      + '<th>번호</th><th>직위</th><th>성명</th><th>서명</th><th>등록시간</th>'
+      + '</tr></thead><tbody>';
+    data.rows.forEach(function(r,i){
+      html += '<tr><td>'+esc(r.no || (i+1))+'</td>'
+        + '<td>'+esc(r.position)+'</td>'
+        + '<td>'+esc(r.name)+'</td>'
+        + '<td>'+(isSigDataUrl(r.signature)
+            ? '<img src="'+esc(r.signature)+'">' : '')+'</td>'
+        + '<td>'+esc(r.time)+'</td></tr>';
+    });
+    html += '</tbody></table></div>';
+    res.innerHTML = html;
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(m){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+
+  /* 서명은 캔버스가 만든 PNG dataURL만 허용. 뒤에 따옴표가 붙어 속성을
+     탈출하는 문자열을 걸러낸다(저장형 XSS 방지). */
+  function isSigDataUrl(s){ return /^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/.test(String(s||'')); }
+</script>
+
+<p style="margin:24px auto 16px;max-width:520px;padding:0 16px;text-align:center;
+          font-size:11px;line-height:1.6;color:#9aa0a6;word-break:keep-all;">
+  통합연수등록부 &copy; 2026 KIMYERANG.<br>
+  본 앱은 자유롭게 사용할 수 있으나, 저작자의 허락 없는<br>
+  복제&middot;배포&middot;수정은 금지합니다.
+</p>
+</body>
+</html>
